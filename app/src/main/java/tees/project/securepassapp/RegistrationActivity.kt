@@ -42,31 +42,32 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import tees.project.securepassapp.ui.theme.SecurePassAppTheme
 import kotlin.jvm.java
 
-class LoginActivity : ComponentActivity() {
+class RegistrationActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
-            SecurePassAppTheme {
-                LoginScreen()
-            }
+            RegistrationScreen()
 
         }
     }
 }
 
-
 @Composable
-fun LoginScreen() {
+fun RegistrationScreen() {
+    var fullname by remember { mutableStateOf("") }
+    var country by remember { mutableStateOf("") }
+    var messageText by remember { mutableStateOf("") }
+
+
     var email by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    var confirmpassword by remember { mutableStateOf("") }
 
     val context = LocalContext.current as Activity
-
 
     Column(
         modifier = Modifier
@@ -79,7 +80,7 @@ fun LoginScreen() {
                 .fillMaxWidth()
                 .height(200.dp),
             painter = painterResource(id = R.drawable.ic_securepass),
-            contentDescription = "Study Planner",
+            contentDescription = "Travel Guide",
         )
 
         Column(
@@ -90,6 +91,20 @@ fun LoginScreen() {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
+            TextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.horizontalGradient(listOf(Color.Gray, Color.Gray)),
+                        shape = RoundedCornerShape(16.dp)
+                    ),
+                value = fullname,
+                onValueChange = { fullname = it },
+                label = { Text("Enter FullName") }
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
 
 
             TextField(
@@ -113,36 +128,53 @@ fun LoginScreen() {
                         brush = Brush.horizontalGradient(listOf(Color.Gray, Color.Gray)),
                         shape = RoundedCornerShape(16.dp)
                     ),
+                value = country,
+                onValueChange = { country = it },
+                label = { Text("Enter Your Country") }
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            TextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.horizontalGradient(listOf(Color.Gray, Color.Gray)),
+                        shape = RoundedCornerShape(16.dp)
+                    ),
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Enter Your Password") }
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
-            if (errorMessage.isNotEmpty()) {
+            TextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.horizontalGradient(listOf(Color.Gray, Color.Gray)),
+                        shape = RoundedCornerShape(16.dp)
+                    ),
+                value = confirmpassword,
+                onValueChange = { confirmpassword = it },
+                label = { Text("Confirm Password") }
+            )
+
+
+
+            Spacer(modifier = Modifier.height(24.dp))
+            if (messageText.isNotEmpty()) {
                 Text(
-                    text = errorMessage,
+                    text = messageText,
                     color = Color.Red,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-
             }
+
             Button(
                 onClick = {
-                    when {
-                        email.isEmpty() -> {
-//                            Toast.makeText(context, " Please Enter Mail", Toast.LENGTH_SHORT).show()
-                        }
 
-                        password.isEmpty() -> {
-//                            Toast.makeText(context, " Please Enter Password", Toast.LENGTH_SHORT)
-//                                .show()
-                        }
-
-
-
-                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -154,21 +186,22 @@ fun LoginScreen() {
                     )
                 )
             ) {
-                Text(text = "Sign In", fontSize = 16.sp)
+                Text(text = "Sign Up", fontSize = 16.sp)
             }
             Spacer(modifier = Modifier.weight(1f))
+
             Row(
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
-                Text(text = "You are a new tourist ?", fontSize = 14.sp)
+                Text(text = "You are an old tourist ?", fontSize = 14.sp)
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "Sign Up",
+                    text = "Sign In",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = colorResource(id = R.color.PureWhite),
                     modifier = Modifier.clickable {
-                        context.startActivity(Intent(context, RegistrationActivity::class.java))
+                        context.startActivity(Intent(context, LoginActivity::class.java))
                         context.finish()
                     }
                 )
@@ -176,14 +209,14 @@ fun LoginScreen() {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-
         }
+
     }
 }
 
 
 @Preview(showBackground = true)
 @Composable
-fun LoginScreenPreview() {
-    LoginScreen()
+fun RegistrationScreenPreview() {
+    RegistrationScreen()
 }
