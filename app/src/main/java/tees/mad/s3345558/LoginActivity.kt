@@ -1,12 +1,10 @@
-package tees.project.securepassapp
+package tees.mad.s3345558
 
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -40,34 +38,31 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import tees.mad.s3345558.ui.theme.SecurePassAppTheme
 import kotlin.jvm.java
 
-class RegistrationActivity : ComponentActivity() {
+class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContent {
-            RegistrationScreen()
+            SecurePassAppTheme {
+                LoginScreen()
+            }
 
         }
     }
 }
 
+
 @Composable
-fun RegistrationScreen() {
-    var fullname by remember { mutableStateOf("") }
-    var country by remember { mutableStateOf("") }
-    var messageText by remember { mutableStateOf("") }
-
-
+fun LoginScreen() {
     var email by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    var confirmpassword by remember { mutableStateOf("") }
 
     val context = LocalContext.current as Activity
+
 
     Column(
         modifier = Modifier
@@ -80,7 +75,7 @@ fun RegistrationScreen() {
                 .fillMaxWidth()
                 .height(200.dp),
             painter = painterResource(id = R.drawable.ic_securepass),
-            contentDescription = "Travel Guide",
+            contentDescription = "Study Planner",
         )
 
         Column(
@@ -91,20 +86,6 @@ fun RegistrationScreen() {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
-            TextField(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        brush = Brush.horizontalGradient(listOf(Color.Gray, Color.Gray)),
-                        shape = RoundedCornerShape(16.dp)
-                    ),
-                value = fullname,
-                onValueChange = { fullname = it },
-                label = { Text("Enter FullName") }
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
 
 
             TextField(
@@ -128,53 +109,36 @@ fun RegistrationScreen() {
                         brush = Brush.horizontalGradient(listOf(Color.Gray, Color.Gray)),
                         shape = RoundedCornerShape(16.dp)
                     ),
-                value = country,
-                onValueChange = { country = it },
-                label = { Text("Enter Your Country") }
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            TextField(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        brush = Brush.horizontalGradient(listOf(Color.Gray, Color.Gray)),
-                        shape = RoundedCornerShape(16.dp)
-                    ),
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Enter Your Password") }
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
-
-            TextField(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        brush = Brush.horizontalGradient(listOf(Color.Gray, Color.Gray)),
-                        shape = RoundedCornerShape(16.dp)
-                    ),
-                value = confirmpassword,
-                onValueChange = { confirmpassword = it },
-                label = { Text("Confirm Password") }
-            )
-
-
-
             Spacer(modifier = Modifier.height(24.dp))
-            if (messageText.isNotEmpty()) {
+
+            if (errorMessage.isNotEmpty()) {
                 Text(
-                    text = messageText,
+                    text = errorMessage,
                     color = Color.Red,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-            }
 
+            }
             Button(
                 onClick = {
+                    when {
+                        email.isEmpty() -> {
+//                            Toast.makeText(context, " Please Enter Mail", Toast.LENGTH_SHORT).show()
+                        }
 
+                        password.isEmpty() -> {
+//                            Toast.makeText(context, " Please Enter Password", Toast.LENGTH_SHORT)
+//                                .show()
+                        }
+
+
+
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -186,22 +150,21 @@ fun RegistrationScreen() {
                     )
                 )
             ) {
-                Text(text = "Sign Up", fontSize = 16.sp)
+                Text(text = "Sign In", fontSize = 16.sp)
             }
             Spacer(modifier = Modifier.weight(1f))
-
             Row(
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
-                Text(text = "You are an old tourist ?", fontSize = 14.sp)
+                Text(text = "You are a new tourist ?", fontSize = 14.sp)
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "Sign In",
+                    text = "Sign Up",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = colorResource(id = R.color.PureWhite),
                     modifier = Modifier.clickable {
-                        context.startActivity(Intent(context, LoginActivity::class.java))
+                        context.startActivity(Intent(context, RegistrationActivity::class.java))
                         context.finish()
                     }
                 )
@@ -209,14 +172,14 @@ fun RegistrationScreen() {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-        }
 
+        }
     }
 }
 
 
 @Preview(showBackground = true)
 @Composable
-fun RegistrationScreenPreview() {
-    RegistrationScreen()
+fun LoginScreenPreview() {
+    LoginScreen()
 }

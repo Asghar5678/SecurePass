@@ -1,4 +1,4 @@
-package tees.project.securepassapp
+package tees.mad.s3345558
 
 import android.app.Activity
 import android.content.Intent
@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -38,7 +37,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import tees.project.securepassapp.ui.theme.SecurePassAppTheme
 import kotlin.jvm.java
 
 class MainActivity : ComponentActivity() {

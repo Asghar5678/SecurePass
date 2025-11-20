@@ -1,6 +1,5 @@
-package tees.project.securepassapp.ui.theme
+package tees.mad.s3345558.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

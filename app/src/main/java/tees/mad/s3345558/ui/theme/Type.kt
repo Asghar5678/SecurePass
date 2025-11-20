@@ -1,4 +1,4 @@
-package tees.project.securepassapp.ui.theme
+package tees.mad.s3345558.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

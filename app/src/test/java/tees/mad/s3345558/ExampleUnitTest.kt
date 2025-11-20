@@ -1,4 +1,4 @@
-package tees.project.securepassapp
+package tees.mad.s3345558
 
 import org.junit.Test
 

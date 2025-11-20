@@ -5,13 +5,13 @@ plugins {
 }
 
 android {
-    namespace = "tees.project.securepassapp"
+    namespace = "tees.mad.s3345558"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "tees.project.securepassapp"
+        applicationId = "tees.mad.s3345558"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
