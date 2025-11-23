@@ -80,7 +80,7 @@ fun SplashScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = colorResource(id = R.color.p1)),
+            .background(color = colorResource(id = R.color.lite_green)),
     ) {
 
         Column(

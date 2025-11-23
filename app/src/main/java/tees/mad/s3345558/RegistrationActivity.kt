@@ -1,6 +1,5 @@
 package tees.mad.s3345558
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -20,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -38,7 +38,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlin.jvm.java
 
 class RegistrationActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,7 +62,11 @@ fun RegistrationScreen() {
 
     var confirmpassword by remember { mutableStateOf("") }
 
-    val context = LocalContext.current as Activity
+    val context = LocalContext.current.findActivity()
+
+    var passwordStrength by remember { mutableStateOf(0f) }
+    var strengthLabel by remember { mutableStateOf("") }
+
 
     Column(
         modifier = Modifier
@@ -139,9 +142,38 @@ fun RegistrationScreen() {
                         shape = RoundedCornerShape(16.dp)
                     ),
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = {
+                    password = it
+                    val result = getPasswordStrength(password)
+                    passwordStrength = result.first
+                    strengthLabel = result.second
+                },
                 label = { Text("Enter Your Password") }
             )
+
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            if (password.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(6.dp))
+
+                LinearProgressIndicator(
+                    progress = passwordStrength,
+                    color = getStrengthColor(passwordStrength),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp)
+                        .background(Color.LightGray, RoundedCornerShape(4.dp))
+                )
+
+                Text(
+                    text = strengthLabel,
+                    color = getStrengthColor(passwordStrength),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+
 
             Spacer(modifier = Modifier.height(6.dp))
 
@@ -197,7 +229,7 @@ fun RegistrationScreen() {
                     fontWeight = FontWeight.Bold,
                     color = colorResource(id = R.color.PureWhite),
                     modifier = Modifier.clickable {
-                        context.startActivity(Intent(context, LoginActivity::class.java))
+                        context!!.startActivity(Intent(context, LoginActivity::class.java))
                         context.finish()
                     }
                 )
@@ -215,4 +247,38 @@ fun RegistrationScreen() {
 @Composable
 fun RegistrationScreenPreview() {
     RegistrationScreen()
+}
+
+fun getPasswordStrength(password: String): Pair<Float, String> {
+    if (password.isEmpty()) return 0f to ""
+
+    val length = password.length >= 8
+    val hasUpper = password.any { it.isUpperCase() }
+    val hasLower = password.any { it.isLowerCase() }
+    val hasDigit = password.any { it.isDigit() }
+    val hasSpecial = password.any { !it.isLetterOrDigit() }
+
+    if (!length) {
+        return 0.33f to "Weak (Min 8 characters)"
+    }
+
+    if (length && ((hasUpper || hasLower) && hasDigit || hasSpecial)) {
+        return 0.66f to "Medium"
+    }
+
+    if (length && hasUpper && hasLower && hasDigit && hasSpecial && password.length >= 10) {
+        return 1f to "Strong"
+    }
+
+    return 0.66f to "Medium"
+}
+
+
+fun getStrengthColor(strength: Float): Color {
+    return when (strength) {
+        0.33f -> Color.Red
+        0.66f -> Color(0xFFFFA000) // Amber
+        1f -> Color(0xFF2E7D32)    // Green
+        else -> Color.Transparent
+    }
 }

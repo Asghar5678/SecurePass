@@ -1,6 +1,8 @@
 package tees.mad.s3345558
 
 import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -61,7 +63,7 @@ fun LoginScreen() {
     var password by remember { mutableStateOf("") }
 
 
-    val context = LocalContext.current as Activity
+    val context = LocalContext.current.findActivity()
 
 
     Column(
@@ -164,7 +166,7 @@ fun LoginScreen() {
                     fontWeight = FontWeight.Bold,
                     color = colorResource(id = R.color.PureWhite),
                     modifier = Modifier.clickable {
-                        context.startActivity(Intent(context, RegistrationActivity::class.java))
+                        context!!.startActivity(Intent(context, RegistrationActivity::class.java))
                         context.finish()
                     }
                 )
@@ -175,6 +177,12 @@ fun LoginScreen() {
 
         }
     }
+}
+
+fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }
 
 
