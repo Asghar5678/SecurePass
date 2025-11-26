@@ -57,7 +57,7 @@ fun SecurePassCheck() {
     DisposableEffect(Unit) {
         val job = CoroutineScope(Dispatchers.Main).launch {
             delay(3000)
-//            showSplash = false
+            showSplash = false
         }
         onDispose { job.cancel() }
     }

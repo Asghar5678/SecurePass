@@ -67,6 +67,9 @@ fun RegistrationScreen() {
     var passwordStrength by remember { mutableStateOf(0f) }
     var strengthLabel by remember { mutableStateOf("") }
 
+    var predictableWarning by remember { mutableStateOf("") }
+
+
 
     Column(
         modifier = Modifier
@@ -147,6 +150,10 @@ fun RegistrationScreen() {
                     val result = getPasswordStrength(password)
                     passwordStrength = result.first
                     strengthLabel = result.second
+
+                    predictableWarning = if (isPredictablePassword(password)) {
+                        "⚠ Your password is too predictable. Choose something harder."
+                    } else ""
                 },
                 label = { Text("Enter Your Password") }
             )
@@ -173,6 +180,16 @@ fun RegistrationScreen() {
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
+
+            if (predictableWarning.isNotEmpty()) {
+                Text(
+                    text = predictableWarning,
+                    color = Color.Red,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+
 
 
             Spacer(modifier = Modifier.height(6.dp))
@@ -281,4 +298,41 @@ fun getStrengthColor(strength: Float): Color {
         1f -> Color(0xFF2E7D32)    // Green
         else -> Color.Transparent
     }
+}
+
+
+fun isPredictablePassword(password: String): Boolean {
+    if (password.isEmpty()) return false
+
+    val commonPasswords = listOf(
+        "123456", "12345678", "123456789", "password", "admin", "qwerty",
+        "iloveyou", "welcome", "abc123", "monkey", "dragon", "letmein",
+        "000000", "111111", "112233", "password1", "qwerty123"
+    )
+
+    // 1) Common passwords
+    if (commonPasswords.contains(password.lowercase())) return true
+
+    // 2) Repeated characters (e.g., "aaaaaa", "111111")
+    if (password.all { it == password[0] }) return true
+
+    // 3) Sequential numbers or letters
+    val sequences = listOf(
+        "abcdefghijklmnopqrstuvwxyz",
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        "0123456789"
+    )
+
+    val lowered = password.lowercase()
+
+    for (seq in sequences) {
+        if (seq.contains(lowered)) return true
+        if (seq.reversed().contains(lowered)) return true
+    }
+
+    // 4) Keyboard patterns
+    val keyboardPatterns = listOf("qwerty", "asdf", "zxcv", "qaz", "wsx")
+    if (keyboardPatterns.any { lowered.contains(it) }) return true
+
+    return false
 }
