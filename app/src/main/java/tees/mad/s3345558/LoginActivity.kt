@@ -3,10 +3,7 @@ package tees.mad.s3345558
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
-import android.content.Intent
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -40,30 +37,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import tees.mad.s3345558.ui.theme.SecurePassAppTheme
-import kotlin.jvm.java
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import com.google.firebase.database.FirebaseDatabase
 
-class LoginActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            SecurePassAppTheme {
-                LoginScreen()
-            }
 
-        }
-    }
-}
 
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
 
     val context = LocalContext.current.findActivity()
+
+    val context1 = LocalContext.current
 
 
     Column(
@@ -77,7 +67,7 @@ fun LoginScreen() {
                 .fillMaxWidth()
                 .height(200.dp),
             painter = painterResource(id = R.drawable.ic_securepass),
-            contentDescription = "Study Planner",
+            contentDescription = "Secure Pass",
         )
 
         Column(
@@ -130,14 +120,59 @@ fun LoginScreen() {
                 onClick = {
                     when {
                         email.isEmpty() -> {
-//                            Toast.makeText(context, " Please Enter Mail", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, " Please Enter Mail", Toast.LENGTH_SHORT).show()
                         }
 
                         password.isEmpty() -> {
-//                            Toast.makeText(context, " Please Enter Password", Toast.LENGTH_SHORT)
-//                                .show()
+                            Toast.makeText(context, " Please Enter Password", Toast.LENGTH_SHORT)
+                                .show()
                         }
 
+                        else -> {
+
+                            val database = FirebaseDatabase.getInstance()
+                            val databaseReference = database.reference
+
+                            val sanitizedEmail = email.replace(".", ",")
+
+                            databaseReference.child("AuthUsers").child(sanitizedEmail).get()
+                                .addOnSuccessListener { snapshot ->
+                                    if (snapshot.exists()) {
+                                        val chefData = snapshot.getValue(UserData::class.java)
+                                        chefData?.let {
+
+                                            if (password == it.password) {
+
+                                                UserPrefs.markLoginStatus(context1, true)
+                                                UserPrefs.saveReporterEmail(context1, email = email)
+                                                UserPrefs.saveReporterName(context1, it.name)
+
+                                                Toast.makeText(
+                                                    context,
+                                                    "Login Successfull",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+//                                                navController.navigate(NavScreens.Home.route) {
+//                                                    popUpTo(NavScreens.Login.route) {
+//                                                        inclusive = true
+//                                                    }
+//                                                }
+                                            } else {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Incorrect Credentials",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }
+                                    } else {
+                                        Toast.makeText(context, "No User Found", Toast.LENGTH_SHORT)
+                                            .show()
+                                    }
+                                }.addOnFailureListener { exception ->
+                                    println("Error retrieving data: ${exception.message}")
+                                }
+                        }
 
 
                     }
@@ -158,7 +193,7 @@ fun LoginScreen() {
             Row(
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
-                Text(text = "You are a new tourist ?", fontSize = 14.sp)
+                Text(text = "You are a new user ?", fontSize = 14.sp)
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "Sign Up",
@@ -166,8 +201,9 @@ fun LoginScreen() {
                     fontWeight = FontWeight.Bold,
                     color = colorResource(id = R.color.PureWhite),
                     modifier = Modifier.clickable {
-                        context!!.startActivity(Intent(context, RegistrationActivity::class.java))
-                        context.finish()
+                        navController.navigate(NavScreens.Home.route) {
+                            popUpTo(NavScreens.Login.route) { inclusive = true }
+                        }
                     }
                 )
             }
@@ -189,5 +225,12 @@ fun Context.findActivity(): Activity? = when (this) {
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen()
+    LoginScreen(navController = NavHostController(LocalContext.current))
 }
+
+data class UserData(
+    var name: String = "",
+    var country: String = "",
+    var email: String = "",
+    var password: String = "",
+)

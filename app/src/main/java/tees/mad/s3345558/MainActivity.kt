@@ -1,11 +1,11 @@
 package tees.mad.s3345558
 
-import android.app.Activity
-import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,11 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -33,43 +29,78 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlin.jvm.java
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            SecurePassCheck()
+            MyAppNavGraph()
         }
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun SecurePassCheck() {
-    val context = LocalContext.current as Activity
-    var showSplash by remember { mutableStateOf(true) }
+fun MyAppNavGraph() {
+    val navController = rememberNavController()
 
-    DisposableEffect(Unit) {
-        val job = CoroutineScope(Dispatchers.Main).launch {
-            delay(3000)
-            showSplash = false
+    NavHost(
+        navController = navController,
+        startDestination = NavScreens.Splash.route
+    ) {
+        composable(NavScreens.Splash.route) {
+            SecurePassCheck(navController = navController)
         }
-        onDispose { job.cancel() }
+
+        composable(NavScreens.Login.route) {
+            LoginScreen(navController = navController)
+        }
+
+        composable(NavScreens.Register.route) {
+            RegistrationScreen(navController = navController)
+        }
+
+
+
+
     }
 
-    if (showSplash) {
-        SplashScreen()
+}
 
-    } else {
-        context.startActivity(Intent(context, LoginActivity::class.java))
-        context.finish()
+
+
+@Composable
+fun SecurePassCheck(navController: NavController) {
+
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        delay(3000)
+
+        if(UserPrefs.checkLoginStatus(context))
+        {
+            navController.navigate(NavScreens.Home.route) {
+                popUpTo(NavScreens.Splash.route) {
+                    inclusive = true
+                }
+            }
+        }else{
+            navController.navigate(NavScreens.Login.route) {
+                popUpTo(NavScreens.Splash.route) {
+                    inclusive = true
+                }
+            }
+        }
+
     }
 
+    SplashScreen()
 }
 
 @Composable

@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "634247745012",
+    "firebase_url": "https://passapp-27ee8-default-rtdb.firebaseio.com",
+    "project_id": "passapp-27ee8",
+    "storage_bucket": "passapp-27ee8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:634247745012:android:70ce6c90ebf480d0f07da1",
+        "android_client_info": {
+          "package_name": "tees.mad.s3345558"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAAW5V87rGV-y5654yv9Xbm2d3eoljq8OM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

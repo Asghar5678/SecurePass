@@ -1,9 +1,6 @@
 package tees.mad.s3345558
 
-import android.content.Intent
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,20 +35,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import com.google.firebase.database.FirebaseDatabase
 
-class RegistrationActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        setContent {
-            RegistrationScreen()
-
-        }
-    }
-}
 
 @Composable
-fun RegistrationScreen() {
+fun RegistrationScreen(navController: NavController) {
     var fullname by remember { mutableStateOf("") }
     var country by remember { mutableStateOf("") }
     var messageText by remember { mutableStateOf("") }
@@ -82,7 +72,7 @@ fun RegistrationScreen() {
                 .fillMaxWidth()
                 .height(200.dp),
             painter = painterResource(id = R.drawable.ic_securepass),
-            contentDescription = "Travel Guide",
+            contentDescription = "Secure Pass",
         )
 
         Column(
@@ -220,6 +210,61 @@ fun RegistrationScreen() {
             Button(
                 onClick = {
 
+                    if (fullname.isEmpty()) {
+                        Toast.makeText(context, "Enter Full Name", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
+                    if (email.isEmpty()) {
+                        Toast.makeText(context, "Enter Full Email", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
+                    if (country.isEmpty()) {
+                        Toast.makeText(context, "Enter Country", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
+                    if (password.isEmpty()) {
+                        Toast.makeText(context, "Enter Password", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
+                    val userData = UserData(
+                        name = fullname,
+                        email = email,
+                        country = country,
+                        password = password
+                    )
+
+
+                    val db = FirebaseDatabase.getInstance()
+                    val ref = db.getReference("AuthUsers")
+                    ref.child(userData.email.replace(".", ",")).setValue(userData)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                Toast.makeText(context, "Registration Successful", Toast.LENGTH_SHORT).show()
+
+//                                navController.navigate(NavScreens.Login.route){
+//                                    popUpTo(NavScreens.Register.route) { inclusive = true }
+//                                }
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "User Registration Failed: ${task.exception?.message}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                        .addOnFailureListener { exception ->
+                            Toast.makeText(
+                                context,
+                                "User Registration Failed: ${exception.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+
+
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -238,7 +283,7 @@ fun RegistrationScreen() {
             Row(
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
-                Text(text = "You are an old tourist ?", fontSize = 14.sp)
+                Text(text = "You are an old user ?", fontSize = 14.sp)
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "Sign In",
@@ -246,8 +291,9 @@ fun RegistrationScreen() {
                     fontWeight = FontWeight.Bold,
                     color = colorResource(id = R.color.PureWhite),
                     modifier = Modifier.clickable {
-                        context!!.startActivity(Intent(context, LoginActivity::class.java))
-                        context.finish()
+                        navController.navigate(NavScreens.Login.route) {
+                            popUpTo(NavScreens.Register.route) { inclusive = true }
+                        }
                     }
                 )
             }
@@ -263,7 +309,7 @@ fun RegistrationScreen() {
 @Preview(showBackground = true)
 @Composable
 fun RegistrationScreenPreview() {
-    RegistrationScreen()
+    RegistrationScreen(navController = NavHostController(LocalContext.current))
 }
 
 fun getPasswordStrength(password: String): Pair<Float, String> {
