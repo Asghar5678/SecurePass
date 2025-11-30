@@ -152,11 +152,11 @@ fun LoginScreen(navController: NavController) {
                                                     "Login Successfull",
                                                     Toast.LENGTH_SHORT
                                                 ).show()
-//                                                navController.navigate(NavScreens.Home.route) {
-//                                                    popUpTo(NavScreens.Login.route) {
-//                                                        inclusive = true
-//                                                    }
-//                                                }
+                                                navController.navigate(NavScreens.Home.route) {
+                                                    popUpTo(NavScreens.Login.route) {
+                                                        inclusive = true
+                                                    }
+                                                }
                                             } else {
                                                 Toast.makeText(
                                                     context,
@@ -201,7 +201,7 @@ fun LoginScreen(navController: NavController) {
                     fontWeight = FontWeight.Bold,
                     color = colorResource(id = R.color.PureWhite),
                     modifier = Modifier.clickable {
-                        navController.navigate(NavScreens.Home.route) {
+                        navController.navigate(NavScreens.Register.route) {
                             popUpTo(NavScreens.Login.route) { inclusive = true }
                         }
                     }

@@ -60,7 +60,6 @@ fun RegistrationScreen(navController: NavController) {
     var predictableWarning by remember { mutableStateOf("") }
 
 
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -245,9 +244,9 @@ fun RegistrationScreen(navController: NavController) {
                             if (task.isSuccessful) {
                                 Toast.makeText(context, "Registration Successful", Toast.LENGTH_SHORT).show()
 
-//                                navController.navigate(NavScreens.Login.route){
-//                                    popUpTo(NavScreens.Register.route) { inclusive = true }
-//                                }
+                                navController.navigate(NavScreens.Login.route){
+                                    popUpTo(NavScreens.Register.route) { inclusive = true }
+                                }
                             } else {
                                 Toast.makeText(
                                     context,

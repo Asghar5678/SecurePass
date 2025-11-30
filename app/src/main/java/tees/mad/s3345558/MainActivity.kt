@@ -66,13 +66,21 @@ fun MyAppNavGraph() {
             RegistrationScreen(navController = navController)
         }
 
+        composable(NavScreens.Home.route) {
+            HomeScreen(
+                onStrengthCheckClick = {
+                    navController.navigate(NavScreens.StrengthChecker.route)
+                }
+            )
+        }
 
-
-
+        composable(NavScreens.StrengthChecker.route) {
+            StrengthCheckScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
     }
-
 }
-
 
 
 @Composable
@@ -83,14 +91,13 @@ fun SecurePassCheck(navController: NavController) {
     LaunchedEffect(Unit) {
         delay(3000)
 
-        if(UserPrefs.checkLoginStatus(context))
-        {
+        if (UserPrefs.checkLoginStatus(context)) {
             navController.navigate(NavScreens.Home.route) {
                 popUpTo(NavScreens.Splash.route) {
                     inclusive = true
                 }
             }
-        }else{
+        } else {
             navController.navigate(NavScreens.Login.route) {
                 popUpTo(NavScreens.Splash.route) {
                     inclusive = true
@@ -166,7 +173,7 @@ fun SplashScreen() {
             )
 
             Text(
-                text = "Student",
+                text = "Bilal",
                 color = colorResource(id = R.color.white),
                 style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(bottom = 4.dp)
