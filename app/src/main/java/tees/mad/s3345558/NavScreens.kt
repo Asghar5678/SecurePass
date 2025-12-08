@@ -9,6 +9,7 @@ sealed class NavScreens(val route: String) {
 
     object Home : NavScreens("home_route")
     object StrengthChecker : NavScreens("strength_checker")
+    object BreachChecker : NavScreens("breacher_checker")
 
 
 }

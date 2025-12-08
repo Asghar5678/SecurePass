@@ -70,7 +70,18 @@ fun MyAppNavGraph() {
             HomeScreen(
                 onStrengthCheckClick = {
                     navController.navigate(NavScreens.StrengthChecker.route)
+                },
+                onBreachCheckClick = {
+                    navController.navigate(NavScreens.BreachChecker.route)
                 }
+
+            )
+        }
+
+
+        composable(NavScreens.BreachChecker.route) {
+            PasswordBreachCheckScreen(
+                onBack = { navController.popBackStack() }
             )
         }
 
