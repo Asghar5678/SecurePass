@@ -1,8 +1,8 @@
 package tees.mad.s3345558
 
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
@@ -35,20 +35,28 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
 
-class MainActivity : ComponentActivity() {
+
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.fragment.app.FragmentActivity
+import androidx.core.content.ContextCompat
+
+class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MyAppNavGraph()
+            SecurePassNavGraph()
         }
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MyAppNavGraph() {
+fun SecurePassNavGraph() {
     val navController = rememberNavController()
+
+    val context = LocalContext.current
 
     NavHost(
         navController = navController,
@@ -73,6 +81,15 @@ fun MyAppNavGraph() {
                 },
                 onBreachCheckClick = {
                     navController.navigate(NavScreens.BreachChecker.route)
+                },
+                onHistoryClick = {
+                    navController.navigate(NavScreens.History.route)
+                },
+                onSettingsClick = {
+                    navController.navigate(NavScreens.Settings.route)
+                },
+                onProfileClicked = {
+                    navController.navigate(NavScreens.Profile.route)
                 }
 
             )
@@ -90,24 +107,79 @@ fun MyAppNavGraph() {
                 onBack = { navController.popBackStack() }
             )
         }
+
+        composable(NavScreens.Settings.route) {
+            SettingsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(NavScreens.Profile.route) {
+            ProfileScreen(
+                navController = navController,
+                onLogout = {
+                    UserAccountData.markLoginStatus(context = context,false)
+
+                    navController.navigate(NavScreens.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        composable(NavScreens.History.route) {
+            HistoryScreen(
+                navController
+            )
+        }
+
     }
 }
-
 
 @Composable
 fun SecurePassCheck(navController: NavController) {
 
     val context = LocalContext.current
+    val activity = context as FragmentActivity
 
     LaunchedEffect(Unit) {
         delay(3000)
 
-        if (UserPrefs.checkLoginStatus(context)) {
-            navController.navigate(NavScreens.Home.route) {
-                popUpTo(NavScreens.Splash.route) {
-                    inclusive = true
+        val isLoggedIn = UserAccountData.checkLoginStatus(context)
+        val biometricEnabled = SecurityPrefs.isBiometricEnabled(context)
+        val biometricAvailable = isBiometricAvailable(context)
+
+        if (isLoggedIn) {
+
+            if (biometricEnabled && biometricAvailable) {
+
+                authenticateWithBiometrics(
+                    activity = activity,
+                    onSuccess = {
+                        navController.navigate(NavScreens.Home.route) {
+                            popUpTo(NavScreens.Splash.route) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    onError = {
+                        navController.navigate(NavScreens.Login.route) {
+                            popUpTo(NavScreens.Splash.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                )
+
+            } else {
+                navController.navigate(NavScreens.Home.route) {
+                    popUpTo(NavScreens.Splash.route) {
+                        inclusive = true
+                    }
                 }
             }
+
         } else {
             navController.navigate(NavScreens.Login.route) {
                 popUpTo(NavScreens.Splash.route) {
@@ -115,16 +187,15 @@ fun SecurePassCheck(navController: NavController) {
                 }
             }
         }
-
     }
 
     SplashScreen()
 }
 
+
 @Composable
 fun SplashScreen() {
 
-//    val context = LocalContext.current as Activity
 
     Column(
         modifier = Modifier
@@ -202,3 +273,63 @@ fun SplashScreen() {
 fun SplashScreenPreview() {
     SplashScreen()
 }
+
+
+fun isBiometricAvailable(context: Context): Boolean {
+    val biometricManager = BiometricManager.from(context)
+
+    return biometricManager.canAuthenticate(
+        BiometricManager.Authenticators.BIOMETRIC_STRONG
+                or BiometricManager.Authenticators.DEVICE_CREDENTIAL
+    ) == BiometricManager.BIOMETRIC_SUCCESS
+}
+
+fun authenticateWithBiometrics(
+    activity: FragmentActivity,
+    onSuccess: () -> Unit,
+    onError: (String) -> Unit,
+    onFailed: () -> Unit = {}
+) {
+
+    val executor = ContextCompat.getMainExecutor(activity)
+
+    val biometricPrompt = BiometricPrompt(
+        activity,
+        executor,
+        object : BiometricPrompt.AuthenticationCallback() {
+
+            override fun onAuthenticationSucceeded(
+                result: BiometricPrompt.AuthenticationResult
+            ) {
+                super.onAuthenticationSucceeded(result)
+                onSuccess()
+            }
+
+            override fun onAuthenticationError(
+                errorCode: Int,
+                errString: CharSequence
+            ) {
+                super.onAuthenticationError(errorCode, errString)
+                onError(errString.toString())
+            }
+
+            override fun onAuthenticationFailed() {
+                super.onAuthenticationFailed()
+                onFailed()
+            }
+        }
+    )
+
+    val promptInfo = BiometricPrompt.PromptInfo.Builder()
+        .setTitle("Unlock Secure Pass")
+        .setSubtitle("Authenticate using biometrics")
+        .setDescription("Use fingerprint or face to continue")
+        .setAllowedAuthenticators(
+            BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                    BiometricManager.Authenticators.DEVICE_CREDENTIAL
+        )
+        .build()
+
+    biometricPrompt.authenticate(promptInfo)
+}
+

@@ -1,6 +1,8 @@
 package tees.mad.s3345558
 
 
+import android.R.attr.label
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
@@ -42,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -71,7 +74,12 @@ fun PasswordBreachCheckScreen(
     var errorMessage by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
+    var label by remember { mutableStateOf("") }
+
+
     val scope = rememberCoroutineScope()
+
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -107,7 +115,6 @@ fun PasswordBreachCheckScreen(
                 .padding(16.dp)
         ) {
 
-            // ---------------- Premium Header ----------------
             PremiumCardBD {
                 Text(
                     "Find out if your password has been exposed in any known data breaches.",
@@ -117,10 +124,20 @@ fun PasswordBreachCheckScreen(
                 )
             }
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(12.dp))
 
-            // ---------------- Password Input ----------------
+
             PremiumCardBD {
+                OutlinedTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = label,
+                    onValueChange = { label = it },
+                    label = { Text("Password for ?") },
+                    placeholder = { Text("e.g. Gmail, Bank, Work") }
+                )
+
+                Spacer(Modifier.height(6.dp))
+
                 OutlinedTextField(
                     value = password,
                     onValueChange = {
@@ -144,7 +161,6 @@ fun PasswordBreachCheckScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // ---------------- Check Button ----------------
             Button(
                 onClick = {
                     if (password.isEmpty()) {
@@ -167,6 +183,18 @@ fun PasswordBreachCheckScreen(
                             val match = response.lines().find { it.startsWith(suffix) }
 
                             breachCount = match?.split(":")?.get(1)?.toIntOrNull() ?: 0
+
+
+                            HistoryPrefs.saveHistory(
+                                context = context,
+                                label = label.ifBlank { "Unlabeled" },
+                                strength = "Checked",
+                                breachStatus = if (breachCount!! > 0) "Breached" else "Safe"
+                            )
+
+                            Toast.makeText(context,"Result Saved",Toast.LENGTH_SHORT).show()
+
+
                         } catch (e: Exception) {
                             errorMessage = "Network or API error occurred."
                         } finally {
@@ -184,7 +212,6 @@ fun PasswordBreachCheckScreen(
 
             Spacer(Modifier.height(22.dp))
 
-            // ---------------- Loading ----------------
             if (isLoading) {
                 PremiumCardBD {
                     Row(
@@ -198,7 +225,6 @@ fun PasswordBreachCheckScreen(
                 }
             }
 
-            // ---------------- Error ----------------
             if (errorMessage.isNotEmpty()) {
                 PremiumCardBD {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -209,8 +235,16 @@ fun PasswordBreachCheckScreen(
                 }
             }
 
-            // ---------------- Result ----------------
+
+
             breachCount?.let { count ->
+
+                SecurityPrefs.setLastBreachStatus(
+                    context,
+                    if (breachCount!! > 0) "Breached" else "Safe"
+                )
+
+
                 Spacer(Modifier.height(12.dp))
 
                 val cardColor =
@@ -272,30 +306,6 @@ fun PremiumCardBD(content: @Composable ColumnScope.() -> Unit) {
 }
 
 
-
-// ------------------------------------------------------------
-// Breach Result UI Component
-// ------------------------------------------------------------
-@Composable
-fun BreachResultCard(title: String, color: Color, message: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f)),
-        elevation = CardDefaults.cardElevation(4.dp),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Text(title, color = color, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            Spacer(Modifier.height(8.dp))
-            Text(message, color = Color.Black, fontSize = 15.sp)
-        }
-    }
-}
-
-
-// ------------------------------------------------------------
-// SHA-1 Hash Function (Local Only)
-// ------------------------------------------------------------
 fun sha1(input: String): String {
     val md = MessageDigest.getInstance("SHA-1")
     val digest = md.digest(input.toByteArray(Charsets.UTF_8))
@@ -303,10 +313,6 @@ fun sha1(input: String): String {
     return bigInt.toString(16).padStart(40, '0')
 }
 
-
-// ------------------------------------------------------------
-// Retrofit API (HIBP k-Anonymity)
-// ------------------------------------------------------------
 interface HIBPService {
     @GET("range/{prefix}")
     suspend fun checkPassword(@Path("prefix") prefix: String): String

@@ -17,8 +17,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -34,6 +40,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,17 +50,17 @@ import androidx.navigation.NavHostController
 import com.google.firebase.database.FirebaseDatabase
 
 
-
-
 @Composable
 fun LoginScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    var passwordVisible by remember { mutableStateOf(false) }
+
+
 
     val context = LocalContext.current.findActivity()
-
     val context1 = LocalContext.current
 
 
@@ -61,6 +69,20 @@ fun LoginScreen(navController: NavController) {
             .fillMaxSize()
             .background(color = colorResource(id = R.color.lite_green))
     ) {
+
+        Spacer(modifier = Modifier.height(48.dp))
+
+        Text(
+            text = "Login",
+            color = Color.Black,
+            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+            modifier = Modifier
+                .padding(bottom = 4.dp)
+                .align(Alignment.CenterHorizontally)
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
 
         Image(
             modifier = Modifier
@@ -103,7 +125,20 @@ fun LoginScreen(navController: NavController) {
                     ),
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Enter Your Password") }
+                label = { Text("Enter Your Password") },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    val image = if (passwordVisible)
+                        Icons.Filled.Visibility
+                    else Icons.Filled.VisibilityOff
+
+                    val description =
+                        if (passwordVisible) "Hide password" else "Show password"
+
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(imageVector = image, description)
+                    }
+                }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -138,14 +173,19 @@ fun LoginScreen(navController: NavController) {
                             databaseReference.child("AuthUsers").child(sanitizedEmail).get()
                                 .addOnSuccessListener { snapshot ->
                                     if (snapshot.exists()) {
-                                        val chefData = snapshot.getValue(UserData::class.java)
-                                        chefData?.let {
+                                        val accountData = snapshot.getValue(UserData::class.java)
+                                        val savedPassword = snapshot.child("password").value.toString()
+                                        val decryptedPassword = CryptoUtils.decrypt(savedPassword)
 
-                                            if (password == it.password) {
 
-                                                UserPrefs.markLoginStatus(context1, true)
-                                                UserPrefs.saveReporterEmail(context1, email = email)
-                                                UserPrefs.saveReporterName(context1, it.name)
+                                        accountData?.let {
+
+                                            if (password == decryptedPassword) {
+
+                                                UserAccountData.markLoginStatus(context1, true)
+                                                UserAccountData.saveEmail(context1, email = email)
+                                                UserAccountData.saveName(context1, it.name)
+                                                UserAccountData.saveCountry(context1,it.country)
 
                                                 Toast.makeText(
                                                     context,
@@ -187,7 +227,9 @@ fun LoginScreen(navController: NavController) {
                     )
                 )
             ) {
-                Text(text = "Sign In", fontSize = 16.sp)
+                Text(
+                    text = "Sign In", fontSize = 16.sp, color = Color.Black
+                )
             }
             Spacer(modifier = Modifier.weight(1f))
             Row(

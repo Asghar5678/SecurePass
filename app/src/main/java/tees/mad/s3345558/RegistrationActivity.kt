@@ -22,6 +22,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -69,16 +70,32 @@ fun RegistrationScreen(navController: NavController) {
     var passwordVisible by remember { mutableStateOf(false) }
 
 
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(color = colorResource(id = R.color.lite_green))
     ) {
 
+        Spacer(modifier = Modifier.height(48.dp))
+
+        Text(
+            text = "Register",
+            color = Color.Black,
+            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+            modifier = Modifier
+                .padding(bottom = 4.dp)
+                .align(Alignment.CenterHorizontally)
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+
         Image(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp),
+                .height(100.dp),
             painter = painterResource(id = R.drawable.ic_securepass),
             contentDescription = "Secure Pass",
         )
@@ -251,11 +268,13 @@ fun RegistrationScreen(navController: NavController) {
                         return@Button
                     }
 
+                    val encryptedPassword = CryptoUtils.encrypt(password)
+
                     val userData = UserData(
                         name = fullname,
                         email = email,
                         country = country,
-                        password = password
+                        password = encryptedPassword
                     )
 
 
@@ -264,9 +283,13 @@ fun RegistrationScreen(navController: NavController) {
                     ref.child(userData.email.replace(".", ",")).setValue(userData)
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
-                                Toast.makeText(context, "Registration Successful", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    "Registration Successful",
+                                    Toast.LENGTH_SHORT
+                                ).show()
 
-                                navController.navigate(NavScreens.Login.route){
+                                navController.navigate(NavScreens.Login.route) {
                                     popUpTo(NavScreens.Register.route) { inclusive = true }
                                 }
                             } else {
@@ -284,8 +307,6 @@ fun RegistrationScreen(navController: NavController) {
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
-
-
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -297,7 +318,9 @@ fun RegistrationScreen(navController: NavController) {
                     )
                 )
             ) {
-                Text(text = "Sign Up", fontSize = 16.sp)
+                Text(
+                    text = "Sign Up", fontSize = 16.sp, color = Color.Black
+                )
             }
             Spacer(modifier = Modifier.weight(1f))
 
@@ -361,8 +384,8 @@ fun getPasswordStrength(password: String): Pair<Float, String> {
 fun getStrengthColor(strength: Float): Color {
     return when (strength) {
         0.33f -> Color.Red
-        0.66f -> Color(0xFFFFA000) // Amber
-        1f -> Color(0xFF2E7D32)    // Green
+        0.66f -> Color(0xFFFFA000)
+        1f -> Color(0xFF2E7D32)
         else -> Color.Transparent
     }
 }
@@ -377,13 +400,10 @@ fun isPredictablePassword(password: String): Boolean {
         "000000", "111111", "112233", "password1", "qwerty123"
     )
 
-    // 1) Common passwords
     if (commonPasswords.contains(password.lowercase())) return true
 
-    // 2) Repeated characters (e.g., "aaaaaa", "111111")
     if (password.all { it == password[0] }) return true
 
-    // 3) Sequential numbers or letters
     val sequences = listOf(
         "abcdefghijklmnopqrstuvwxyz",
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -397,7 +417,6 @@ fun isPredictablePassword(password: String): Boolean {
         if (seq.reversed().contains(lowered)) return true
     }
 
-    // 4) Keyboard patterns
     val keyboardPatterns = listOf("qwerty", "asdf", "zxcv", "qaz", "wsx")
     if (keyboardPatterns.any { lowered.contains(it) }) return true
 
